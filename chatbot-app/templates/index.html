@@ -1,80 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="styles.css">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Chatbot</title>
   <style>
-    #chat-history { max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
-    .message { margin-bottom: 10px; }
-    .message strong { display: inline-block; width: 60px; }
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .chat-box { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; margin-bottom: 10px; }
+    .user { color: blue; }
+    .bot { color: green; }
+    .controls { margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h1>Chatbot</h1>
+  <h2>Chatbot</h2>
 
-  <form id="chat-form">
-    <label>
-      Personality:
-      <textarea name="personality" id="personality-field" rows="3">{{ personality or '' }}</textarea>
-    </label>
-    <br/>
-    <label>
-      Creativity (temperature):
-      <input type="number" name="temperature" id="temperature-field" step="0.1" min="0" max="1" value="{{ temperature or 0.5 }}"/>
-    </label>
-    <br/>
-    <label>
-      Your Message:
-      <input type="text" name="user_input" id="user-input" required autocomplete="off"/>
-    </label>
-    <button type="submit">Send</button>
-  </form>
-
-  <div id="chat-history">
+  <div class="chat-box" id="chat-box">
     {% for msg in history %}
-      {% if msg.role != 'personality' %}
-        <div class="message">
-          <strong>{{ msg.role }}:</strong> {{ msg.content }}
-        </div>
-      {% endif %}
+      <div class="{{ msg.role }}">{{ msg.role }}: {{ msg.content }}</div>
     {% endfor %}
   </div>
 
+  <div class="controls">
+    <textarea id="user-input" rows="3" cols="60" placeholder="Type your message..."></textarea><br>
+    <input type="text" id="personality" placeholder="Personality prompt" value="{{ personality }}">
+    <input type="number" id="temperature" step="0.1" value="{{ temperature }}" min="0" max="1"><br><br>
+    <button onclick="sendMessage()">Send</button>
+    <button id="reset-btn">Reset Chat</button>
+  </div>
+
   <script>
-    const form = document.getElementById('chat-form');
-    const historyContainer = document.getElementById('chat-history');
+    function sendMessage() {
+      const userInput = document.getElementById("user-input").value;
+      const personality = document.getElementById("personality").value;
+      const temperature = document.getElementById("temperature").value;
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const payload = {
-        personality: document.getElementById('personality-field').value,
-        temperature: document.getElementById('temperature-field').value,
-        user_input: document.getElementById('user-input').value
-      };
-
-      const response = await fetch('/', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
+      fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_input: userInput,
+          personality: personality,
+          temperature: temperature
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML = "";
+        data.history.forEach(msg => {
+          const div = document.createElement("div");
+          div.className = msg.role;
+          div.textContent = `${msg.role}: ${msg.content}`;
+          chatBox.appendChild(div);
+        });
+        document.getElementById("user-input").value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
       });
+    }
 
-      const data = await response.json();
-
-      historyContainer.innerHTML = '';
-      data.history.forEach(msg => {
-        if (msg.role !== 'personality') {
-          const div = document.createElement('div');
-          div.classList.add('message');
-          div.innerHTML = `<strong>${msg.role}:</strong> ${msg.content}`;
-          historyContainer.appendChild(div);
-        }
-      });
-
-      document.getElementById('user-input').value = '';
-      historyContainer.scrollTop = historyContainer.scrollHeight;
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      fetch("/reset", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+          location.reload();
+        });
     });
   </script>
 </body>
