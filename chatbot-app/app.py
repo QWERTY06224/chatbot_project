@@ -3,7 +3,7 @@ import cohere
 import os
 
 app = Flask(__name__)
-co = cohere.Client(os.environ.get("1vw5dT6F7MKNyqgQgZQMRQiO0DWLkGDoUVRHph0x"))  # Use env variable
+co = cohere.Client(os.environ.get(COHERE_API_KEY))  # Use env variable
 
 @app.route('/', methods=['GET', 'POST'])
 def chatbot():
