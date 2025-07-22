@@ -1,21 +1,30 @@
-from flask import Flask, render_template, request
-import cohere
-import os
+from flask import Flask, request, jsonify, render_template
+import cohere, os
 
 app = Flask(__name__)
-co = cohere.Client(os.environ.get("COHERE_API_KEY"))  # Use env variable
+co = cohere.Client(os.environ.get("COHERE_API_KEY"))
+
+# In-memory chat history
+history = []
 
 @app.route('/', methods=['GET', 'POST'])
 def chatbot():
-    response_text = ""
-    if request.method == 'POST':
-        personality = request.form['personality']
-        temp = float(request.form['temperature'])
-        chat_input = request.form['user_input']
+    global history
 
-        chat_history = personality.strip().split("\n")
-        chat_history.append(f"you: {chat_input}")
-        prompt = "\n".join(chat_history) + "\nbot:"
+    if request.method == 'POST':
+        data = request.get_json()
+        personality = data['personality']
+        temp = float(data['temperature'])
+        user_input = data['user_input']
+
+        history = [{"role": "personality", "content": personality}] + history
+        history.append({"role": "user", "content": user_input})
+
+        prompt = personality.strip() + "\n"
+        for msg in history:
+            if msg['role'] in ('user', 'bot'):
+                prompt += f"{msg['role']}: {msg['content']}\n"
+        prompt += "bot:"
 
         response = co.generate(
             model='command-light',
@@ -23,11 +32,9 @@ def chatbot():
             max_tokens=100,
             temperature=temp
         )
-
         bot_reply = response.generations[0].text.strip()
-        response_text = bot_reply
+        history.append({"role": "bot", "content": bot_reply})
 
-    return render_template('index.html', response=response_text)
+        return jsonify({'history': history})
 
-if __name__ == '__main__':
-    app.run()
+    return render_template('index.html', history=history, personality="", temperature=0.5)
