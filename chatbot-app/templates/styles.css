@@ -3,7 +3,8 @@
 /* Set a background color for the entire page */
 body {
   font-family: 'Arial', sans-serif;
-  background-color: #f4f4f9;
+  background: #c32222;
+  background: linear-gradient(0deg, rgba(195, 34, 34, 1) 0%, rgba(253, 187, 45, 1) 100%);
   margin: 0;
   padding: 0;
   display: flex;
