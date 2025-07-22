@@ -6,20 +6,23 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-  <h2>Chatbot</h2>
+  <div id="chat-container">
+    <h2>Chatbot</h2>
 
-  <div class="chat-box" id="chat-box">
-    {% for msg in history %}
-      <div class="{{ msg.role }}">{{ msg.role }}: {{ msg.content }}</div>
-    {% endfor %}
+    <div id="chat-box">
+      {% for msg in history %}
+        <div class="{{ msg.role }}">{{ msg.role }}: {{ msg.content }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="controls">
+      <textarea id="user-input" rows="3" placeholder="Type your message..."></textarea><br>
+      <input type="text" id="personality" placeholder="Personality prompt" value="{{ personality }}"><br>
+      <input type="number" id="temperature" step="0.1" min="0" max="1" value="{{ temperature }}"><br><br>
+      <button onclick="sendMessage()">Send</button>
+      <button id="reset-btn">Reset Chat</button>
+    </div>
   </div>
-
-  <textarea id="user-input" rows="3" cols="60" placeholder="Type your message..."></textarea><br>
-  <input type="text" id="personality" placeholder="Personality prompt" value="{{ personality }}">
-  <input type="number" id="temperature" step="0.1" min="0" max="1" value="{{ temperature }}"><br><br>
-
-  <button onclick="sendMessage()">Send</button>
-  <button id="reset-btn">Reset Chat</button>
 
   <script>
     function sendMessage() {
@@ -30,7 +33,11 @@
       fetch("/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_input: userInput, personality: personality, temperature: temperature })
+        body: JSON.stringify({
+          user_input: userInput,
+          personality: personality,
+          temperature: temperature
+        })
       })
       .then(res => res.json())
       .then(data => {
