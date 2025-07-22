@@ -4,11 +4,10 @@
   <meta charset="UTF-8">
   <title>Chatbot</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .chat-box { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; margin-bottom: 10px; }
+    body { font-family: Arial; padding: 20px; }
+    .chat-box { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
     .user { color: blue; }
     .bot { color: green; }
-    .controls { margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -20,13 +19,12 @@
     {% endfor %}
   </div>
 
-  <div class="controls">
-    <textarea id="user-input" rows="3" cols="60" placeholder="Type your message..."></textarea><br>
-    <input type="text" id="personality" placeholder="Personality prompt" value="{{ personality }}">
-    <input type="number" id="temperature" step="0.1" value="{{ temperature }}" min="0" max="1"><br><br>
-    <button onclick="sendMessage()">Send</button>
-    <button id="reset-btn">Reset Chat</button>
-  </div>
+  <textarea id="user-input" rows="3" cols="60" placeholder="Type your message..."></textarea><br>
+  <input type="text" id="personality" placeholder="Personality prompt" value="{{ personality }}">
+  <input type="number" id="temperature" step="0.1" min="0" max="1" value="{{ temperature }}"><br><br>
+
+  <button onclick="sendMessage()">Send</button>
+  <button id="reset-btn">Reset Chat</button>
 
   <script>
     function sendMessage() {
@@ -37,11 +35,7 @@
       fetch("/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_input: userInput,
-          personality: personality,
-          temperature: temperature
-        })
+        body: JSON.stringify({ user_input: userInput, personality: personality, temperature: temperature })
       })
       .then(res => res.json())
       .then(data => {
