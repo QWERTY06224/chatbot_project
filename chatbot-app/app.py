@@ -4,7 +4,7 @@ import cohere, os
 app = Flask(__name__)
 co = cohere.Client(os.environ.get("COHERE_API_KEY"))
 
-history = []  # your in-memory history buffer
+history = []  # In-memory message history
 
 @app.route("/", methods=["GET", "POST"])
 def chatbot():
@@ -16,16 +16,23 @@ def chatbot():
         temperature = float(data["temperature"])
         user_input = data["user_input"]
 
-        # Always set personality in history first
-        history = [{"role": "personality", "content": personality}]
+        # If it's a new session or first message, inject personality
+        if not any(m["role"] == "personality" for m in history):
+            history.append({"role": "personality", "content": personality})
 
-        # Add user and bot messages
+        # Append user message
         history.append({"role": "user", "content": user_input})
 
-        prompt = personality + "\n"
-        prompt += "\n".join(f"{m['role']}: {m['content']}" for m in history if m["role"] in ["user", "bot"])
-        prompt += "\nbot:"
+        # Build prompt from full history
+        prompt = ""
+        for msg in history:
+            if msg["role"] == "personality":
+                prompt += msg["content"] + "\n"
+            elif msg["role"] in ["user", "bot"]:
+                prompt += f"{msg['role']}: {msg['content']}\n"
+        prompt += "bot:"
 
+        # Call Cohere
         response = co.generate(
             model="command-light",
             prompt=prompt,
@@ -33,13 +40,15 @@ def chatbot():
             temperature=temperature
         )
         bot_reply = response.generations[0].text.strip()
+
+        # Append bot reply to history
         history.append({"role": "bot", "content": bot_reply})
 
-        # Remove personality before returning to frontend
+        # Don't send personality back to frontend
         visible = [m for m in history if m["role"] != "personality"]
         return jsonify({"history": visible})
 
-    # For GET requests, render without personality visible
+    # GET request - show chat UI
     visible = [m for m in history if m["role"] != "personality"]
     return render_template(
         "index.html",
