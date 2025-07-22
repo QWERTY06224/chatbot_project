@@ -1,26 +1,79 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Custom Chatbot</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chatbot</title>
+  <style>
+    /* Simple styling */
+    #chat-history { max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
+    .message { margin-bottom: 10px; }
+    .message strong { display: inline-block; width: 60px; }
+  </style>
 </head>
 <body>
-    <h2>Create Your Chatbot</h2>
-    <form method="post">
-        <label>Personality (one line per trait):</label><br>
-        <textarea name="personality" rows="4" cols="50" required></textarea><br><br>
+  <h1>Your Chatbot</h1>
 
-        <label>Creativity (0.0 - 1.0):</label><br>
-        <input type="number" step="0.1" name="temperature" min="0" max="1" required><br><br>
+  <form id="chat-form">
+    <label>
+      Personality:
+      <textarea name="personality" id="personality-field" rows="3">{{ personality or '' }}</textarea>
+    </label>
+    <br/>
+    <label>
+      Creativity (temperature):
+      <input type="number" name="temperature" id="temperature-field" step="0.1" min="0" max="1" value="{{ temperature or 0.5 }}"/>
+    </label>
+    <br/>
+    <label>
+      Your Message:
+      <input type="text" name="user_input" id="user-input" required autocomplete="off"/>
+    </label>
+    <button type="submit">Send</button>
+  </form>
 
-        <label>Your message:</label><br>
-        <input type="text" name="user_input" required><br><br>
+  <div id="chat-history">
+    {% for msg in history %}
+      <div class="message">
+        <strong>{{ msg.role }}:</strong> {{ msg.content }}
+      </div>
+    {% endfor %}
+  </div>
 
-        <input type="submit" value="Chat">
-    </form>
+  <script>
+    const form = document.getElementById('chat-form');
+    const historyContainer = document.getElementById('chat-history');
 
-    {% if response %}
-        <h3>Bot:</h3>
-        <p>{{ response }}</p>
-    {% endif %}
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault(); // Prevent page reload
+
+      const payload = {
+        personality: document.getElementById('personality-field').value,
+        temperature: document.getElementById('temperature-field').value,
+        user_input: document.getElementById('user-input').value
+      };
+
+      const response = await fetch('/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      // Rebuild chat history
+      historyContainer.innerHTML = '';
+      data.history.forEach(msg => {
+        const div = document.createElement('div');
+        div.classList.add('message');
+        div.innerHTML = `<strong>${msg.role}:</strong> ${msg.content}`;
+        historyContainer.appendChild(div);
+      });
+
+      document.getElementById('user-input').value = '';
+      // Optionally scroll to bottom
+      historyContainer.scrollTop = historyContainer.scrollHeight;
+    });
+  </script>
 </body>
 </html>
