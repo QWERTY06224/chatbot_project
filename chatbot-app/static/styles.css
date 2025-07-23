@@ -33,7 +33,7 @@ body {
   height: 300px;
   overflow-y: auto;
   padding: 10px;
-  background-color: #f9f9f9;
+  background-color: linear-gradient(to bottom, #c32222 0%, #fdbb2d 100%);
   margin-bottom: 10px;
   font-family: Arial, sans-serif;
 }
