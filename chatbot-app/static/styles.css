@@ -1,7 +1,7 @@
 /* Page background and general text styling */
 body {
   background: #c32222;
-  background: linear-gradient(0deg, rgba(195, 34, 34, 1) 0%, rgba(253, 187, 45, 1) 100%);
+  background: linear-gradient(to bottom, #c32222 0%, #fdbb2d 100%)
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
