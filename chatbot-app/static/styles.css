@@ -1,11 +1,15 @@
 /* Page background and general text styling */
-body {
-  
-  background: linear-gradient(to bottom, #c32222 0%, #fdbb2d 100%);
-  font-family: Arial, sans-serif;
+html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
 }
+
+body {
+  background: linear-gradient(to bottom, #fdbb2d 0%, #c32222 100%);
+  font-family: Arial, sans-serif;
+}
+
 
 /* Container holding the chat */
 #chat-container {
